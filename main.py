@@ -13,7 +13,9 @@ from time import gmtime, strftime
 tm = ThreadManager()
 
 if __name__ == '__main__':
-    TOKEN = 'NDI3NTQyNDUxODYzOTQ1MjM3.DZmEJg.hgWHLXsnDb0_dkymYbGuscE11HM'
+    with open('TOKEN') as f:
+        TOKEN = f.readline()
+
     client = discord.Client()
     client.run(TOKEN)
 

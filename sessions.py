@@ -1,4 +1,16 @@
 import os
+import sys
+from io import StringIO
+import contextlib
+
+@contextlib.contextmanager
+def stdoutIO(stdout=None):
+    old = sys.stdout
+    if stdout is None:
+        stdout = StringIO()
+    sys.stdout = stdout
+    yield stdout
+    sys.stdout = old
 
 class Session(object):
     """
@@ -45,5 +57,6 @@ class Session(object):
         self.namespace = {}
 
     def run(self, input):
-        exec(input, self.namespace)
-        return "ok"
+        with stdoutIO() as s:
+            exec(input, self.namespace)
+            return s.getvalue()

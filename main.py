@@ -92,7 +92,9 @@ async def on_message(message):
             await channel.send('Good night, nyaaster! ')
             time.sleep(10)
         # Client -> ThreadManager -> Run python command
-        await channel.send(await tm.run_code(message.content, message.author.id, message.channel.id))
+        output = await tm.run_code(message.content, message.author.id, message.channel.id)
+        if output:
+            await channel.send('```\n'+output+'```')
 
 @client.event
 async def on_voice_state_update(before, after):

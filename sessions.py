@@ -1,7 +1,8 @@
 import os
 import sys
-from io import StringIO
 import contextlib
+import json
+from io import StringIO
 
 @contextlib.contextmanager
 def stdoutIO(stdout=None):
@@ -37,6 +38,10 @@ class Session(object):
         self.users = [user]
         self.namespace = {}
         self.path = os.path.join('sessions', name)
+        self.channel = channel
+
+        # Create dir for the session 
+        os.mkdir(self.path)
 
     def add_user(self, user):
         if user not in self.users:
@@ -46,9 +51,14 @@ class Session(object):
         if user in self.users:
             self.users.remove(user)
 
-    def save_session(self):
-        with open(self.path, '+w') as f:
-            f.write(self.namespace)
+    def save_session(self, filename):
+        try:
+            path_to_file = os.path.join(self.path, filename + ".json")
+            with open(path_to_file, '+w') as f:
+                # Its a lie, TODO selialize environment to json and save it to the file
+                return "Successfully saved session environment as: " + filename + ".json"
+        except Exception as e:
+            return str(e) + "I/O Error: Failed to save the session"
 
     def delete_session(self):
         os.remove(self.path)
@@ -58,5 +68,16 @@ class Session(object):
 
     def run(self, input):
         with stdoutIO() as s:
-            exec(input, self.namespace)
-            return s.getvalue()
+            try:
+                exec(input, self.namespace)
+                return s.getvalue()
+            except Exception as e:
+                return s.getvalue() + "\nError Log:\n" + str(e)
+
+
+
+
+
+
+
+

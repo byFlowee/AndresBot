@@ -1,4 +1,3 @@
-import threading
 import sessions
 
 class ThreadManager(object): # Or whatever we want to call it
@@ -21,7 +20,7 @@ class ThreadManager(object): # Or whatever we want to call it
         return
 
     async def get_session_name(self, channel):
-        return self.sessions[channel].name if channel in self.sessions else ''
+        return self.sessions[channel].name if channel in self.sessions else 'No active sessions in this channel'
 
     async def clear_session(self, user, channel):
         if channel not in self.sessions:
@@ -41,3 +40,12 @@ class ThreadManager(object): # Or whatever we want to call it
             self.sessions[channel].delete_session()
             del self.sessions[channel]
             return
+
+    async def save_session(self, message, channel, user):
+        if channel not in self.sessions:
+            return 'This channel does not have a running session.'
+        elif user not in self.sessions[channel].users:
+            return 'You do not have access to this session.'
+        else:
+            return self.sessions[channel].save_session(message)
+

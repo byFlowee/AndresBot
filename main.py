@@ -1,14 +1,10 @@
 import discord
-import signal
-import ctypes
 import os
 import sys
 import psutil
 import logging
-import subprocess
-import threading
+import time
 from threads import ThreadManager
-from time import gmtime, strftime
 
 tm = ThreadManager()
 
@@ -26,11 +22,10 @@ def restart_program():
 		for handler in p.open_files() + p.connections():
 			os.close(handler.fd)
 	except Exception as e:
-		logging.error4(e)
+		logging.error(e)
 
 	python = sys.executable
 	os.execl(python, python, *sys.argv)
-
 
 @client.event
 async def on_message(message):
@@ -38,7 +33,7 @@ async def on_message(message):
     if client.user.id != message.author.id:
         channel = client.get_channel(message.channel.id)
         if message.content.startswith("!echo "):
-            await channel.send(message.content)
+            await channel.send(message.content[6:])
             return
         #Display current session name for this channel
         if message.content =="!session":
@@ -52,7 +47,7 @@ async def on_message(message):
             if len(name) < 1:
                 await channel.send("Usage: !session -n \'name\'.")
             else:
-                res = await tm.start_session(name, message.author.id, message.channel.id)
+                await tm.start_session(name, message.author.id, message.channel.id)
                 await channel.send('Session '+name+' successfully created on this channel.')
             return
         #Clear current session for this channel
@@ -82,12 +77,18 @@ async def on_message(message):
         if message.content.startswith("!user -l"):
             #TM: Send client the list of users in the session
             return
+        if message.content.startswith("!save"):
+            if len(message.content[6:]) == 0:
+                await channel.send("Usage: !save \'name\'.")
+            else:
+                result = await tm.save_session(message.content[6:], message.channel.id, message.author.id)
+                await channel.send(result)
+            return
         if message.content == '!restart':
             await channel.send('Opsie Wopsie, we made a fucky wucky and m-master is updating my code >/////<')
-            print('Restarting at ' + strftime("%Y-%m-%d %H:%M:%S", gmtime()))
+            print('Restarting at ' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
             await client.logout()
             restart_program()
-            return
         if message.content == 'asas':
             await channel.send('Good night, nyaaster! ')
             time.sleep(10)
@@ -104,10 +105,7 @@ async def on_voice_state_update(before, after):
 async def on_ready():
 	print('Log in as')
 	print(client.user.name)
-	#print(client.user.id)
 	print('------')
-    # Create a thread for session management
-
 
 if __name__ == '__main__':
     with open('./TOKEN', 'r') as f:
